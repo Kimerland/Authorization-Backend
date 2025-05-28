@@ -12,3 +12,8 @@ export class CreateUserDto {
   @MinLength(6)
   confirmPassword: string;
 }
+
+export class LoginUserDto {
+  email: string;
+  password: string;
+}

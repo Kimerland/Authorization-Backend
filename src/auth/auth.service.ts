@@ -1,15 +1,30 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { PrismaService } from "prisma/prisma.service";
-import { CreateUserDto } from "src/users/dto/create-user.dto";
-import { UsersService } from "src/users/users.service";
+import { CreateUserDto, LoginUserDto } from "src/users/dto/create-user.dto";
 import * as bcrypt from "bcryptjs";
+import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class AuthService {
-  // constructor(private userService: UsersService) {}
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService
+  ) {}
 
-  async login(userDto: CreateUserDto) {}
+  async login(userDto: LoginUserDto) {
+    const { email, password } = userDto;
+
+    const findUser = await this.prisma.user.findUnique({ where: { email } });
+    if (!findUser) throw new BadRequestException("User not found");
+
+    const isPassword = await bcrypt.compare(password, findUser.password);
+    if (!isPassword) throw new BadRequestException("Invalid password");
+
+    const payload = { email: findUser.email, sub: findUser.id };
+    const token = this.jwtService.sign(payload);
+
+    return { message: "User is login", token };
+  }
 
   async registration(userDto: CreateUserDto) {
     const { email, password, confirmPassword } = userDto;
