@@ -10,8 +10,8 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
   providers: [AuthService, JwtStrategy],
   imports: [
     JwtModule.register({
-      secret: process.env.JWT_SECRET || "default-secret",
-      signOptions: { expiresIn: "1h" },
+      secret: process.env.JWT_SECRET || "jwt-secret",
+      signOptions: { expiresIn: "1d" },
     }),
     UsersModule,
     PrismaModule,

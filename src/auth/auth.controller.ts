@@ -4,6 +4,7 @@ import {
   Get,
   Post,
   Request,
+  Res,
   UseGuards,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
@@ -14,9 +15,9 @@ import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Get("profile")
   @UseGuards(JwtAuthGuard)
-  getProfile(@Request() req) {
+  @Get("profile")
+  getMe(@Request() req) {
     return req.user;
   }
 
@@ -26,7 +27,19 @@ export class AuthController {
   }
 
   @Post("login")
-  login(@Body() dto: LoginUserDto) {
-    return this.authService.login(dto);
+  async login(@Res({ passthrough: true }) res, @Body() dto: LoginUserDto) {
+    const { token } = await this.authService.login(dto);
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: false,
+    });
+    return { message: "Logged success!" };
+  }
+
+  @Post("logout")
+  logout(@Res({ passthrough: true }) res) {
+    res.clearCookie("token");
+    return { message: "Logged out" };
   }
 }
