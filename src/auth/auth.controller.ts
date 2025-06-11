@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Req,
   Request,
   Res,
   UseGuards,
@@ -10,6 +11,7 @@ import {
 import { AuthService } from "./auth.service";
 import { CreateUserDto, LoginUserDto } from "src/users/dto/create-user.dto";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
+import { AuthGuard } from "@nestjs/passport";
 
 @Controller("auth")
 export class AuthController {
@@ -21,7 +23,7 @@ export class AuthController {
     const user = req.user;
     return {
       id: user.id,
-      email: user.email
+      email: user.email,
     };
   }
 
@@ -45,5 +47,17 @@ export class AuthController {
   logout(@Res({ passthrough: true }) res) {
     res.clearCookie("token");
     return { message: "Logged out" };
+  }
+
+  @Get("google")
+  @UseGuards(AuthGuard("google"))
+  googleLogin() {}
+
+  @Get("google/callback")
+  @UseGuards(AuthGuard("google"))
+  async googleCallback(@Req() req, @Res() res) {
+    const token = this.authService.createToken(req.user);
+    res.cookie("token", token, { hhtpOnly: true });
+    res.redirect("http://localhost:3000/profile");
   }
 }

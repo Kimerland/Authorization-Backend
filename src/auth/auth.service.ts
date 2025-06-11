@@ -52,4 +52,9 @@ export class AuthService {
 
     return { message: "User registered success", userId: user.id };
   }
+
+  async createToken(user: { id: number; email: string }) {
+    const payload = { id: user.id, email: user.email };
+    return this.jwtService.sign(payload);
+  }
 }
